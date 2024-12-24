@@ -144,9 +144,6 @@ export function createWatcher(args, { state, rebuild }) {
     return chain
   }
 
-  watcher.on('change', (file) => recordChangedFile(file))
-  watcher.on('add', (file) => recordChangedFile(file))
-
   // Restore watching any files that are "removed"
   // This can happen when a file is pseudo-atomically replaced (a copy is created, overwritten, the old one is unlinked, and the new one is renamed)
   // TODO: An an optimization we should allow removal when the config changes
@@ -163,7 +160,24 @@ export function createWatcher(args, { state, rebuild }) {
   // will only fire a rename event for atomic writes and not a change event
   // This is very likely a chokidar bug but it's one we need to work around
   // We treat this as a change event and rebuild the CSS
+
+  // EDIT: for https://github.com/tailwindlabs/tailwindcss/issues/14632.
+  // For folders that have the characters [, ], (, ), {, or }, 
+  // the --watch option doesn't work. This is because for some reason,
+  // chokidar does not fire the .on('change') event when tailwind is watching
+  // from such directories. However, it fires the .on('raw') event with an
+  // evt type of 'change'. This works the same way for .on('add') events.
+  // Fix is to remove direct on('change') and on('add') event handling
+  // and handle both these events in the on('raw') event handling.
   watcher.on('raw', (evt, filePath, meta) => {
+    if (evt === 'change' || evt === 'add') {
+      const fullPath = _path.default.join(
+          meta.watchedPath,
+          filePath
+      );
+      recordChangedFile(fullPath);
+    }
+    
     if (evt !== 'rename' || filePath === null) {
       return
     }
