@@ -171,7 +171,7 @@ export function createWatcher(args, { state, rebuild }) {
   // and handle both these events in the on('raw') event handling.
   watcher.on('raw', (evt, filePath, meta) => {
     if (evt === 'change' || evt === 'add') {
-      const fullPath = _path.default.join(
+      const fullPath = path.join(
           meta.watchedPath,
           filePath
       );
