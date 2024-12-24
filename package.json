@@ -28,7 +28,7 @@
     "release-channel": "node ./scripts/release-channel.js",
     "release-notes": "node ./scripts/release-notes.js",
     "prepublishOnly": "npm install --force && npm run build",
-    "prepare": "npm install --force && npm run build"
+    "prepare": "npm run build"
   },
   "files": [
     "src/*",
